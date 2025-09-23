@@ -4,7 +4,7 @@
     background-clip: text;
     color: transparent;
     animation: move 15s infinite;
-    margin-bottom: 20px;
+    margin-bottom: -20px;
 }
 
 @keyframes move{
