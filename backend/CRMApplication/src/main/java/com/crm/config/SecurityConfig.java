@@ -31,11 +31,9 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            // This section is configured to permit all requests for development
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
-                .requestMatchers("/api/customers/**").hasAuthority("ROLE_CUSTOMER")
-                .anyRequest().authenticated()
+                .requestMatchers("/**").permitAll()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -47,8 +45,8 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        // Allow the frontend origin
-        config.setAllowedOrigins(List.of("http://localhost:4000"));
+        // Allows the frontend running on localhost:5173 to connect
+        config.setAllowedOrigins(List.of("http://localhost:5173")); 
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);
@@ -65,3 +63,4 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 }
+
