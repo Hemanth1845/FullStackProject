@@ -15,7 +15,7 @@ services:
     build:
       context: ./backend/CRMApplication
       dockerfile: ../backend.Dockerfile
-    image: 2300033794/crm-backend
+    image: gowthamsaikorada/crm-backend
     ports:
       - "2025:2020"
     depends_on:
@@ -34,7 +34,7 @@ services:
     build:
       context: ./frontend
       dockerfile: frontend.Dockerfile
-    image: 2300033794/crm-frontend
+    image: gowthamsaikorada/crm-frontend
     ports:
       - "4000:80"
     depends_on:

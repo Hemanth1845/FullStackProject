@@ -31,7 +31,7 @@ jobs:
           context: ./backend/CRMApplication
           file: ./backend/backend.Dockerfile
           push: true
-          tags: 2300033794/crm-backend:latest
+          tags: gowthamsaikorada/crm-backend:latest
 
       - name: Build and push frontend image
         uses: docker/build-push-action@v5
@@ -39,4 +39,4 @@ jobs:
           context: ./frontend
           file: ./frontend/frontend.Dockerfile
           push: true
-          tags: 2300033794/crm-frontend:latest
+          tags: gowthamsaikorada/crm-frontend:latest
