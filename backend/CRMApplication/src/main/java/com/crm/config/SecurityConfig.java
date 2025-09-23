@@ -32,9 +32,9 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 //            .authorizeHttpRequests(auth -> auth
-//                .requestMatchers("/api/auth/**").permitAll()
-//                //.requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
-//                //.requestMatchers("/api/customers/**").hasAuthority("ROLE_CUSTOMER")
+//                .requestMatchers("/api/auth/").permitAll()
+//                //.requestMatchers("/api/admin/").hasAuthority("ROLE_ADMIN")
+//                //.requestMatchers("/api/customers/").hasAuthority("ROLE_CUSTOMER")
 //                .anyRequest().authenticated()
 //            )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -51,7 +51,7 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of("http://localhost:4000"));
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
-        source.registerCorsConfiguration("/**", config);
+        source.registerCorsConfiguration("/", config);
         return source;
     }
 

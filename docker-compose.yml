@@ -1,7 +1,7 @@
 services:
-  mysql-db:
-    container_name: crm-mysql-db
+  mysqldb:
     image: mysql:8
+    container_name: mysql-db
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: crm_db
@@ -10,18 +10,16 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
-      - crm-backend-container-mysql-net
+      - springboot-mysql-net
+
 
   backend:
-    container_name: crm-backend-container
-    build:
-      context: ./backend/CRMApplication
-      dockerfile: ../backend.Dockerfile
     image: gowthamsaikorada/crm-backend
+    container_name: crm-backend-container
     ports:
       - "2025:2020"
     depends_on:
-      - mysql-db
+      - mysqldb
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/crm_db?createDatabaseIfNotExist=true
       - SPRING_DATASOURCE_USERNAME=root
@@ -31,24 +29,21 @@ services:
       - SPRING_MAIL_PASSWORD=xgrx dxhx krjz wsuy
     restart: on-failure
     networks:
-      - crm-backend-container-mysql-net
+      - springboot-mysql-net
 
   frontend:
-    container_name: crm-frontend-container
-    build:
-      context: ./frontend
-      dockerfile: frontend.Dockerfile
     image: gowthamsaikorada/crm-frontend
+    container_name: crm-frontend-container
     ports:
       - "4000:80"
     depends_on:
       - backend
     restart: on-failure
     networks:
-      - crm-backend-container-mysql-net
+      - springboot-mysql-net
 
 volumes:
   mysql_data:
 
 networks:
-  crm-backend-container-mysql-net:
+  springboot-mysql-net:
