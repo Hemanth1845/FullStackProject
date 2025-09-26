@@ -1,49 +1,53 @@
 services:
   mysqldb:
-    image: mysql:8
-    container_name: mysql-db
+    image: mysql:8.0
+    container_name: crm-mysql-db
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: crm_db
-    ports:
-      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
-      - springboot-mysql-net
-
+      - crm-network
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
 
   backend:
-    image: gowthamsaikorada/crm-backend
     container_name: crm-backend-container
-    ports:
-      - "2025:2020"
+    # Use the image from your Docker Hub registry
+    image: gowthamsaikorada/crm-backend:latest
     depends_on:
-      - mysqldb
+      mysqldb:
+        condition: service_healthy
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/crm_db?createDatabaseIfNotExist=true
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysqldb:3306/crm_db
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
       - JWT_SECRET=YourSuperSecretKeyForThisCRMApplicationWhichIsVeryLongAndSecureAndBase64Encoded
-      - SPRING_MAIL_USERNAME=hemanthravada100@gmail.com
-      - SPRING_MAIL_PASSWORD=xgrx dxhx krjz wsuy
-    restart: on-failure
+    ports:
+      - "2025:2020"
     networks:
-      - springboot-mysql-net
+      - crm-network
 
   frontend:
-    image: gowthamsaikorada/crm-frontend
     container_name: crm-frontend-container
+    # Use the image from your Docker Hub registry
+    image: gowthamsaikorada/crm-frontend:latest
     ports:
       - "4000:80"
+    networks:
+      - crm-network
     depends_on:
       - backend
-    restart: on-failure
-    networks:
-      - springboot-mysql-net
+
+networks:
+  crm-network:
+    driver: bridge
 
 volumes:
   mysql_data:
-
-networks:
-  springboot-mysql-net:
+    driver: local
