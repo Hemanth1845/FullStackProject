@@ -1,11 +1,14 @@
 import { Link } from 'react-router-dom';
 import Navbar from './Navbar';
 import styled from 'styled-components';
-import './style.css'
+import './style.css';
+// 1. Correctly import the image with a relative path
+import crmBackground from '../../assets/images/crm-background.jpg';
 
 const HomeContainer = styled.div`
   min-height: 100vh;
-  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/src/assets/images/crm-background.jpg');
+  /* 2. Use the imported variable here */
+  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url(${crmBackground});
   background-size: cover;
   background-position: center;
   color: white;
@@ -25,7 +28,6 @@ const Title = styled.h1`
   font-size: 3.5rem;
   margin-bottom: 1rem;
   animation: fadeIn 1s ease-out;
-
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-20px); }
     to { opacity: 1; transform: translateY(0); }

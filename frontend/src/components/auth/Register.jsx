@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import Swal from 'sweetalert2';
 import Navbar from '../common/Navbar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import registerBackground from '../../assets/images/register-background.jpg';
 import { 
   faUser, 
   faLock, 
