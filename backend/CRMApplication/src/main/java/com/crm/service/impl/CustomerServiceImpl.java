@@ -84,7 +84,6 @@ public class CustomerServiceImpl implements CustomerService {
 
         LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
         List<Object[]> dailyCounts = interactionRepository.countInteractionsPerDay(customer, thirtyDaysAgo);
-
         Map<LocalDate, Long> dailyCountsMap = dailyCounts.stream()
             .collect(Collectors.toMap(
                 row -> ((java.sql.Date) row[0]).toLocalDate(),
@@ -122,9 +121,9 @@ public class CustomerServiceImpl implements CustomerService {
         User customer = getCustomerById(customerId);
         interaction.setCustomer(customer);
         interaction.setDate(LocalDateTime.now());
-        if (interaction.getStatus() == null || interaction.getStatus().isEmpty()) {
-            interaction.setStatus("PENDING");
-        }
+        // Set default statuses for new interactions
+        interaction.setAdminStatus("PENDING");
+        interaction.setCustomerStatus("PENDING");
         return interactionRepository.save(interaction);
     }
 
@@ -138,5 +137,20 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public List<CustomerCampaign> getSubmittedCampaigns(Long customerId) {
         return customerCampaignRepository.findByCustomerId(customerId);
+    }
+
+    @Override
+    public Interaction updateCustomerInteractionStatus(Long customerId, Long interactionId, String status) {
+        User customer = getCustomerById(customerId);
+        Interaction interaction = interactionRepository.findById(interactionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Interaction not found: " + interactionId));
+
+        // Ensure the interaction belongs to the customer
+        if (!interaction.getCustomer().getId().equals(customer.getId())) {
+            throw new SecurityException("Customer is not authorized to update this interaction.");
+        }
+
+        interaction.setCustomerStatus(status);
+        return interactionRepository.save(interaction);
     }
 }

@@ -24,6 +24,9 @@ public interface CustomerService {
     Page<Interaction> getInteractionsForCustomer(Long customerId, String type, String searchTerm, Pageable pageable);
     List<EmailCampaign> getCampaignsForCustomer(Long customerId);
     Interaction addInteraction(Long customerId, Interaction interaction);
+    
+    // NEW Method Signature
+    Interaction updateCustomerInteractionStatus(Long customerId, Long interactionId, String status);
 
     // Customer Submitted Campaigns
     CustomerCampaign submitCampaign(Long customerId, CustomerCampaign campaign);

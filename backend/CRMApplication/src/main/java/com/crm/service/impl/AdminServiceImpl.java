@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -77,7 +78,6 @@ public class AdminServiceImpl implements AdminService {
                "<body>" +
                "<div class='container'>" +
                "  <div class='header'>" +
-               // **MODIFIED**: Using the new image link for account approval.
                "    <img src='https://t4.ftcdn.net/jpg/14/67/59/79/240_F_1467597954_xDk60hyOse7gKb80oiEuhwzavp9Szpsb.jpg' alt='Account Approved'>" +
                "    <h1>Welcome Aboard!</h1>" +
                "  </div>" +
@@ -158,7 +158,6 @@ public class AdminServiceImpl implements AdminService {
         String customerEmail = customer.getEmail();
         userRepository.delete(customer);
 
-        // **MODIFIED**: Using the new image link for account rejection.
         String htmlContent = "<html>"
         + "<body>"
         + "<h2>Account Update</h2>"
@@ -193,17 +192,19 @@ public class AdminServiceImpl implements AdminService {
         return customerCampaignRepository.save(campaign);
     }
 
+    // MODIFIED for the new two-status system
     @Override
     public Page<Interaction> getPendingInteractions(Pageable pageable) {
-        return interactionRepository.findByStatus("PENDING", pageable);
+        return interactionRepository.findByAdminStatus("PENDING", pageable);
     }
 
+    // MODIFIED for the new two-status system
     @Override
     public Interaction updateInteractionStatus(Long interactionId, String status) {
         Interaction interaction = interactionRepository.findById(interactionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Interaction not found with id: " + interactionId));
 
-        interaction.setStatus(status.toUpperCase());
+        interaction.setAdminStatus(status.toUpperCase());
         Interaction updatedInteraction = interactionRepository.save(interaction);
 
         Notification notification = new Notification();
@@ -228,22 +229,16 @@ public class AdminServiceImpl implements AdminService {
         stats.put("conversionRate", 68); // Placeholder
 
         List<Object[]> monthlyCounts = userRepository.countCustomersByMonth();
-        List<Map<String, Object>> customerGrowthData = new ArrayList<>();
-        long cumulativeCount = 0;
+        List<Map<String, Object>> customerGrowthData = monthlyCounts.stream()
+            .map(row -> {
+                Map<String, Object> dataPoint = new HashMap<>();
+                dataPoint.put("date", row[0] + "-" + String.format("%02d", row[1]));
+                dataPoint.put("count", row[2]);
+                return dataPoint;
+            })
+            .collect(Collectors.toList());
 
-        for (Object[] row : monthlyCounts) {
-            Integer year = (Integer) row[0];
-            Integer month = (Integer) row[1];
-            long countInMonth = (long) row[2];
-            cumulativeCount += countInMonth;
-            
-            Map<String, Object> monthData = new HashMap<>();
-            monthData.put("date", String.format("%d-%02d", year, month));
-            monthData.put("count", cumulativeCount);
-            customerGrowthData.add(monthData);
-        }
         stats.put("customerGrowth", customerGrowthData);
-
         return stats;
     }
 

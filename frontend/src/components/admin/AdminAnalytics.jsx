@@ -119,22 +119,23 @@ const AdminAnalytics = () => {
         const response = await api.get('/admin/analytics');
         setStats(response.data);
 
-        // **MODIFIED**: Process real customer growth data from the backend
         if (response.data.customerGrowth && response.data.customerGrowth.length > 0) {
             const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            let cumulativeCustomers = 0; // Initialize cumulative count
             const formattedData = response.data.customerGrowth.map(item => {
                 const [year, month] = item.date.split('-');
                 const shortYear = year.substring(2);
-                const monthName = monthNames[parseInt(month, 10) - 1]; // month from backend is 1-based
+                const monthName = monthNames[parseInt(month, 10) - 1];
+                cumulativeCustomers += item.count; // Add new customers to the total
                 return {
                     name: `${monthName} '${shortYear}`,
-                    customers: item.count
+                    new: item.count,
+                    total: cumulativeCustomers // Store the cumulative total
                 };
             });
             setChartData(formattedData);
         } else {
-            // Handle case with no customer data yet
-            setChartData([{ name: 'Start', customers: 0 }]);
+            setChartData([{ name: 'Start', total: 0 }]);
         }
 
       } catch (error) {
@@ -146,7 +147,7 @@ const AdminAnalytics = () => {
     
     fetchAnalyticsData();
   }, []);
-  
+
   if (loading) {
     return (
       <Container>
@@ -159,15 +160,6 @@ const AdminAnalytics = () => {
   return (
     <Container>
       <PageTitle>Analytics Dashboard</PageTitle>
-      
-      <FilterContainer>
-        <FontAwesomeIcon icon={faFilter} style={{ marginRight: '10px', color: '#666' }} />
-        <FilterSelect>
-          <option value="month">Last Month</option>
-          <option value="quarter">Last Quarter</option>
-          <option value="year">Last Year</option>
-        </FilterSelect>
-      </FilterContainer>
       
       <StatsGrid>
         <StatCard>
@@ -210,7 +202,7 @@ const AdminAnalytics = () => {
               <YAxis allowDecimals={false} />
               <Tooltip />
               <Legend />
-              <Line type="monotone" dataKey="customers" stroke="#e74c3c" activeDot={{ r: 8 }} strokeWidth={2}/>
+              <Line type="monotone" dataKey="total" name="Total Customers" stroke="#e74c3c" activeDot={{ r: 8 }} strokeWidth={2}/>
             </LineChart>
           </ResponsiveContainer>
         </ChartCard>

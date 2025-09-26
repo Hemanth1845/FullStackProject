@@ -12,7 +12,6 @@ import { useDebounce } from '../../hooks/useDebounce';
 const InteractionsContainer = styled.div`
   padding: 20px;
 `;
-
 const HeaderContainer = styled.div`
   display: flex;
   justify-content: space-between;
@@ -20,7 +19,6 @@ const HeaderContainer = styled.div`
   margin-bottom: 20px;
   flex-wrap: wrap;
 `;
-
 const PageTitle = styled.h1`
   margin-bottom: 10px;
   color: #333;
@@ -29,7 +27,6 @@ const PageTitle = styled.h1`
   padding-bottom: 10px;
   flex-grow: 1;
 `;
-
 const AddButton = styled.button`
   display: flex;
   align-items: center;
@@ -44,7 +41,6 @@ const AddButton = styled.button`
   transition: background-color 0.3s ease;
   &:hover { background-color: #27ae60; }
 `;
-
 const FilterContainer = styled.div`
   display: flex;
   justify-content: space-between;
@@ -53,14 +49,12 @@ const FilterContainer = styled.div`
   flex-wrap: wrap;
   gap: 15px;
 `;
-
 const SearchBox = styled.div`
   position: relative;
   flex: 1;
   min-width: 250px;
   max-width: 400px;
 `;
-
 const SearchInput = styled.input`
   width: 100%;
   padding: 10px 15px 10px 40px;
@@ -72,7 +66,6 @@ const SearchInput = styled.input`
     outline: none;
   }
 `;
-
 const SearchIcon = styled.span`
   position: absolute;
   left: 12px;
@@ -80,7 +73,6 @@ const SearchIcon = styled.span`
   transform: translateY(-50%);
   color: #666;
 `;
-
 const FilterSelect = styled.select`
   padding: 10px 15px;
   border: 1px solid #ddd;
@@ -92,7 +84,6 @@ const FilterSelect = styled.select`
     outline: none;
   }
 `;
-
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
@@ -101,20 +92,13 @@ const Table = styled.table`
   overflow: hidden;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
 `;
-
 const TableHead = styled.thead`
   background-color: #f8f9fa;
 `;
-
 const TableRow = styled.tr`
-  &:nth-child(even) {
-    background-color: #f8f9fa;
-  }
-  &:hover {
-    background-color: #f1f4f9;
-  }
+  &:nth-child(even) { background-color: #f8f9fa; }
+  &:hover { background-color: #f1f4f9; }
 `;
-
 const TableHeader = styled.th`
   padding: 15px;
   text-align: left;
@@ -122,16 +106,12 @@ const TableHeader = styled.th`
   color: #333;
   border-bottom: 2px solid #ddd;
   cursor: ${props => props.$sortable ? 'pointer' : 'default'};
-  .sort-icon {
-    margin-left: 5px;
-  }
+  .sort-icon { margin-left: 5px; }
 `;
-
 const TableCell = styled.td`
   padding: 15px;
   border-bottom: 1px solid #ddd;
 `;
-
 const TypeBadge = styled.span`
   display: inline-flex;
   align-items: center;
@@ -158,13 +138,13 @@ const TypeBadge = styled.span`
     }
   }};
 `;
-
 const StatusBadge = styled(TypeBadge)`
   background-color: ${props => {
     switch(props.status) {
       case 'completed': return 'rgba(46, 204, 113, 0.2)';
       case 'scheduled': return 'rgba(241, 196, 15, 0.2)';
       case 'pending': return 'rgba(231, 76, 60, 0.2)';
+      case 'not_completed': return 'rgba(231, 76, 60, 0.2)';
       default: return 'rgba(149, 165, 166, 0.2)';
     }
   }};
@@ -173,11 +153,11 @@ const StatusBadge = styled(TypeBadge)`
       case 'completed': return '#27ae60';
       case 'scheduled': return '#f39c12';
       case 'pending': return '#c0392b';
+      case 'not_completed': return '#c0392b';
       default: return '#7f8c8d';
     }
   }};
 `;
-
 const Pagination = styled.div`
   display: flex;
   justify-content: center;
@@ -185,7 +165,6 @@ const Pagination = styled.div`
   margin-top: 20px;
   gap: 5px;
 `;
-
 const PageButton = styled.button`
   padding: 8px 12px;
   border: 1px solid #ddd;
@@ -197,18 +176,13 @@ const PageButton = styled.button`
   &:hover:not(:disabled) {
     background-color: ${props => props.$active ? '#357abD' : '#f1f4f9'};
   }
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
+  &:disabled { cursor: not-allowed; opacity: 0.5; }
 `;
-
 const PageInfo = styled.span`
     padding: 8px 12px;
     font-size: 0.9rem;
     color: #555;
 `;
-
 const LoadingSpinner = styled.div`
   display: flex;
   justify-content: center;
@@ -224,12 +198,17 @@ const LoadingSpinner = styled.div`
   }
   @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 `;
-
 const NoData = styled.div`
   text-align: center;
   padding: 50px;
   color: #666;
   font-size: 1.2rem;
+`;
+const StatusSelect = styled.select`
+  padding: 5px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  background-color: white;
 `;
 
 const CustomerInteractions = () => {
@@ -304,24 +283,31 @@ const CustomerInteractions = () => {
             if (!subject || !type) {
                 Swal.showValidationMessage(`Please enter a subject and select a type`);
             }
-            return { 
-                subject, 
-                type, 
-                notes: Swal.getPopup().querySelector('#notes').value 
-            };
+            return { subject, type, notes: Swal.getPopup().querySelector('#notes').value };
         }
     }).then(async (result) => {
         if (result.isConfirmed) {
             try {
                 const userId = sessionStorage.getItem('userId');
                 await api.post(`/customers/${userId}/interactions`, result.value);
-                Swal.fire('Success!', 'Interaction added successfully.', 'success');
+                Swal.fire('Success!', 'Interaction submitted for admin review.', 'success');
                 fetchInteractions();
             } catch (error) {
                 Swal.fire('Error!', 'Could not add interaction.', 'error');
             }
         }
     });
+  };
+
+  const handleStatusChange = async (interactionId, newStatus) => {
+      try {
+          const userId = sessionStorage.getItem('userId');
+          await api.put(`/customers/${userId}/interactions/${interactionId}/status`, { status: newStatus });
+          Swal.fire('Success', 'Status updated successfully.', 'success');
+          fetchInteractions(); // Refresh the data
+      } catch (error) {
+          Swal.fire('Error', 'Failed to update status.', 'error');
+      }
   };
 
   const formatDate = (dateString) => new Date(dateString).toLocaleString();
@@ -374,26 +360,39 @@ const CustomerInteractions = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableHeader $sortable onClick={() => handleSort('type')}>Type {getSortIcon('type')}</TableHeader>
-                <TableHeader $sortable onClick={() => handleSort('subject')}>Subject {getSortIcon('subject')}</TableHeader>
-                <TableHeader $sortable onClick={() => handleSort('date')}>Date {getSortIcon('date')}</TableHeader>
-                <TableHeader $sortable onClick={() => handleSort('status')}>Status {getSortIcon('status')}</TableHeader>
+                <TableHeader $sortable onClick={() => handleSort('type')}>Type</TableHeader>
+                <TableHeader $sortable onClick={() => handleSort('subject')}>Subject</TableHeader>
+                <TableHeader $sortable onClick={() => handleSort('date')}>Date</TableHeader>
+                <TableHeader>Customer Status</TableHeader>
+                <TableHeader>Admin Status</TableHeader>
                 <TableHeader>Notes</TableHeader>
+                <TableHeader>Update My Status</TableHeader>
               </TableRow>
             </TableHead>
             <tbody>
               {interactions.map(interaction => (
                 <TableRow key={interaction.id}>
                   <TableCell>
-                    <TypeBadge type={interaction.type}>
+                    <TypeBadge type={interaction.type?.toLowerCase()}>
                       <FontAwesomeIcon icon={getTypeIcon(interaction.type)} />
                       {interaction.type}
                     </TypeBadge>
                   </TableCell>
                   <TableCell>{interaction.subject}</TableCell>
                   <TableCell>{formatDate(interaction.date)}</TableCell>
-                  <TableCell><StatusBadge status={interaction.status}>{interaction.status}</StatusBadge></TableCell>
+                  <TableCell><StatusBadge status={interaction.customerStatus?.toLowerCase()}>{interaction.customerStatus}</StatusBadge></TableCell>
+                  <TableCell><StatusBadge status={interaction.adminStatus?.toLowerCase()}>{interaction.adminStatus}</StatusBadge></TableCell>
                   <TableCell>{interaction.notes}</TableCell>
+                  <TableCell>
+                      <StatusSelect 
+                          value={interaction.customerStatus} 
+                          onChange={(e) => handleStatusChange(interaction.id, e.target.value)}
+                      >
+                          <option value="PENDING">Pending</option>
+                          <option value="COMPLETED">Completed</option>
+                          <option value="NOT_COMPLETED">Not Completed</option>
+                      </StatusSelect>
+                  </TableCell>
                 </TableRow>
               ))}
             </tbody>

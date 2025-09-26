@@ -1,9 +1,10 @@
 package com.crm.controller;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
+import com.crm.model.CustomerCampaign;
+import com.crm.model.EmailCampaign;
+import com.crm.model.Interaction;
+import com.crm.model.User;
+import com.crm.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,20 +13,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.crm.model.CustomerCampaign;
-import com.crm.model.EmailCampaign;
-import com.crm.model.Interaction;
-import com.crm.model.User;
-import com.crm.service.CustomerService;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/customers")
@@ -82,8 +74,7 @@ public class CustomerController {
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String search,
             Pageable pageable,
-            @AuthenticationPrincipal UserDetails userDetails
-    ) {
+            @AuthenticationPrincipal UserDetails userDetails) {
         checkAccess(id, userDetails);
         Page<Interaction> interactions = customerService.getInteractionsForCustomer(id, type, search, pageable);
         return ResponseEntity.ok(interactions);
@@ -98,6 +89,23 @@ public class CustomerController {
         checkAccess(id, userDetails);
         Interaction newInteraction = customerService.addInteraction(id, interaction);
         return new ResponseEntity<>(newInteraction, HttpStatus.CREATED);
+    }
+    
+    // NEW ENDPOINT
+    @PutMapping("/{id}/interactions/{interactionId}/status")
+    public ResponseEntity<Interaction> updateCustomerInteractionStatus(
+            @PathVariable Long id,
+            @PathVariable Long interactionId,
+            @RequestBody Map<String, String> statusUpdate,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        checkAccess(id, userDetails);
+        String status = statusUpdate.get("status");
+        if (status == null || (!status.equalsIgnoreCase("COMPLETED") && !status.equalsIgnoreCase("NOT_COMPLETED") && !status.equalsIgnoreCase("PENDING"))) {
+            return ResponseEntity.badRequest().build();
+        }
+        Interaction updatedInteraction = customerService.updateCustomerInteractionStatus(id, interactionId, status.toUpperCase());
+        return ResponseEntity.ok(updatedInteraction);
     }
 
     // == Marketing Email Campaigns Endpoint ==
