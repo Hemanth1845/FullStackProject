@@ -18,8 +18,9 @@ services:
 
   backend:
     container_name: crm-backend-container
-    # Use the image from your Docker Hub registry
-    image: gowthamsaikorada/crm-backend:latest
+    build:
+      context: ./backend/CRMApplication
+      dockerfile: backend.Dockerfile
     depends_on:
       mysqldb:
         condition: service_healthy
@@ -35,8 +36,12 @@ services:
 
   frontend:
     container_name: crm-frontend-container
-    # Use the image from your Docker Hub registry
-    image: gowthamsaikorada/crm-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: frontend.Dockerfile
+      # This new 'args' section is the fix ▼
+      args:
+        - VITE_APP_API_URL=http://localhost:2025/api
     ports:
       - "4000:80"
     networks:
