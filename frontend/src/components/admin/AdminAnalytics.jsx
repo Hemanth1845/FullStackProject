@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUsers, faHandshake, faChartLine, faFilter } from '@fortawesome/free-solid-svg-icons';
+import { faUsers, faHandshake, faChartLine } from '@fortawesome/free-solid-svg-icons';
 import api from '../../api';
 import Swal from 'sweetalert2';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const Container = styled.div` padding: 20px; `;
 const PageTitle = styled.h1`
@@ -13,22 +13,6 @@ const PageTitle = styled.h1`
   font-size: 2rem;
   border-bottom: 2px solid #e74c3c;
   padding-bottom: 10px;
-`;
-const FilterContainer = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 20px;
-`;
-const FilterSelect = styled.select`
-  padding: 8px 15px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  margin-left: 10px;
-  background-color: white;
-  &:focus {
-    border-color: #e74c3c;
-    outline: none;
-  }
 `;
 const StatsGrid = styled.div`
   display: grid;
@@ -75,7 +59,7 @@ const StatLabel = styled.div`
 `;
 const ChartsGrid = styled.div`
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
   gap: 20px;
 `;
 const ChartCard = styled.div`
@@ -110,6 +94,7 @@ const LoadingSpinner = styled.div`
 const AdminAnalytics = () => {
   const [stats, setStats] = useState({});
   const [chartData, setChartData] = useState([]);
+  const [leaderboardData, setLeaderboardData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -121,21 +106,21 @@ const AdminAnalytics = () => {
 
         if (response.data.customerGrowth && response.data.customerGrowth.length > 0) {
             const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            let cumulativeCustomers = 0; // Initialize cumulative count
+            let cumulativeCustomers = 0;
             const formattedData = response.data.customerGrowth.map(item => {
                 const [year, month] = item.date.split('-');
                 const shortYear = year.substring(2);
                 const monthName = monthNames[parseInt(month, 10) - 1];
-                cumulativeCustomers += item.count; // Add new customers to the total
-                return {
-                    name: `${monthName} '${shortYear}`,
-                    new: item.count,
-                    total: cumulativeCustomers // Store the cumulative total
-                };
+                cumulativeCustomers += item.count;
+                return { name: `${monthName} '${shortYear}`, total: cumulativeCustomers };
             });
             setChartData(formattedData);
         } else {
             setChartData([{ name: 'Start', total: 0 }]);
+        }
+
+        if (response.data.leaderboard) {
+            setLeaderboardData(response.data.leaderboard);
         }
 
       } catch (error) {
@@ -147,7 +132,7 @@ const AdminAnalytics = () => {
     
     fetchAnalyticsData();
   }, []);
-
+  
   if (loading) {
     return (
       <Container>
@@ -205,6 +190,19 @@ const AdminAnalytics = () => {
               <Line type="monotone" dataKey="total" name="Total Customers" stroke="#e74c3c" activeDot={{ r: 8 }} strokeWidth={2}/>
             </LineChart>
           </ResponsiveContainer>
+        </ChartCard>
+        <ChartCard>
+            <ChartTitle>Top Customers by Interactions</ChartTitle>
+            <ResponsiveContainer width="100%" height="90%">
+                <BarChart data={leaderboardData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" allowDecimals={false} />
+                    <YAxis dataKey="username" type="category" width={100} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="interactionCount" name="Total Interactions" fill="#8884d8" />
+                </BarChart>
+            </ResponsiveContainer>
         </ChartCard>
       </ChartsGrid>
     </Container>

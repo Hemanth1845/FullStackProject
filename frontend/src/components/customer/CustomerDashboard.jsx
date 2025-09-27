@@ -1,4 +1,3 @@
-// src/components/customer/CustomerDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
@@ -8,18 +7,24 @@ import {
   faChartLine, 
   faComments, 
   faPaperPlane,
-  faEnvelopeOpenText, // New Icon
+  faEnvelopeOpenText,
+  faCalendarAlt,
+  faShieldHalved,
+  faMessage,
   faBars, 
   faSignOutAlt 
 } from '@fortawesome/free-solid-svg-icons';
+
+// Import all components, including the new ones
 import CustomerProfile from './CustomerProfile';
 import CustomerAnalytics from './CustomerAnalytics';
 import CustomerInteractions from './CustomerInteractions';
 import MyCampaigns from './MyCampaigns';
-import CustomerEmails from './CustomerEmails'; // Import the new component
+import CustomerEmails from './CustomerEmails';
+import InteractionCalendar from './InteractionCalendar';
+import SecureFileSafe from './SecureFileSafe';
+import Chat from './Chat';
 import Swal from 'sweetalert2';
-
-// ... (Styled components are unchanged) ...
 
 const DashboardContainer = styled.div`
   display: flex;
@@ -132,7 +137,6 @@ const Content = styled.div`
   padding: 20px;
 `;
 
-
 const CustomerDashboard = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [activeLink, setActiveLink] = useState('profile');
@@ -146,18 +150,14 @@ const CustomerDashboard = () => {
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 768) {
-        setIsOpen(false);
-      }
+      if (window.innerWidth < 768) setIsOpen(false);
     };
     window.addEventListener('resize', handleResize);
     handleResize();
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
-  };
+  const toggleSidebar = () => setIsOpen(!isOpen);
 
   const handleLogout = () => {
     Swal.fire({
@@ -207,7 +207,24 @@ const CustomerDashboard = () => {
               <span className="text">Interactions</span>
             </MenuLink>
           </MenuItem>
-          {/* ** NEW LINK ** */}
+          <MenuItem>
+            <MenuLink to="/customer/calendar" $isOpen={isOpen} className={activeLink === 'calendar' ? 'active' : ''}>
+              <FontAwesomeIcon icon={faCalendarAlt} className="icon" />
+              <span className="text">Calendar</span>
+            </MenuLink>
+          </MenuItem>
+           <MenuItem>
+            <MenuLink to="/customer/file-safe" $isOpen={isOpen} className={activeLink === 'file-safe' ? 'active' : ''}>
+              <FontAwesomeIcon icon={faShieldHalved} className="icon" />
+              <span className="text">File Safe</span>
+            </MenuLink>
+          </MenuItem>
+           <MenuItem>
+            <MenuLink to="/customer/chat" $isOpen={isOpen} className={activeLink === 'chat' ? 'active' : ''}>
+              <FontAwesomeIcon icon={faMessage} className="icon" />
+              <span className="text">Chat with Admin</span>
+            </MenuLink>
+          </MenuItem>
           <MenuItem>
             <MenuLink to="/customer/email-campaigns" $isOpen={isOpen} className={activeLink === 'email-campaigns' ? 'active' : ''}>
               <FontAwesomeIcon icon={faEnvelopeOpenText} className="icon" />
@@ -234,7 +251,9 @@ const CustomerDashboard = () => {
           <Route path="/profile" element={<CustomerProfile />} />
           <Route path="/analytics" element={<CustomerAnalytics />} />
           <Route path="/interactions" element={<CustomerInteractions />} />
-          {/* ** NEW ROUTE ** */}
+          <Route path="/calendar" element={<InteractionCalendar />} />
+          <Route path="/file-safe" element={<SecureFileSafe />} />
+          <Route path="/chat" element={<Chat />} />
           <Route path="/email-campaigns" element={<CustomerEmails />} />
           <Route path="/my-campaigns" element={<MyCampaigns />} />
         </Routes>
@@ -244,3 +263,5 @@ const CustomerDashboard = () => {
 };
 
 export default CustomerDashboard;
+
+

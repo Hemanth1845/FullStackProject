@@ -6,6 +6,7 @@ import com.crm.model.Interaction;
 import com.crm.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -20,15 +21,16 @@ public interface CustomerService {
     // Analytics
     Map<String, Object> getCustomerAnalytics(Long customerId);
 
-    // Interactions & Campaigns
+    // Interactions
     Page<Interaction> getInteractionsForCustomer(Long customerId, String type, String searchTerm, Pageable pageable);
-    List<EmailCampaign> getCampaignsForCustomer(Long customerId);
     Interaction addInteraction(Long customerId, Interaction interaction);
-    
-    // NEW Method Signature
     Interaction updateCustomerInteractionStatus(Long customerId, Long interactionId, String status);
 
-    // Customer Submitted Campaigns
+    // Calendar
+    List<Interaction> getInteractionsForCalendar(Long customerId, LocalDateTime startDate, LocalDateTime endDate);
+
+    // Marketing & Customer Campaigns
+    List<EmailCampaign> getCampaignsForCustomer(Long customerId);
     CustomerCampaign submitCampaign(Long customerId, CustomerCampaign campaign);
     List<CustomerCampaign> getSubmittedCampaigns(Long customerId);
 }

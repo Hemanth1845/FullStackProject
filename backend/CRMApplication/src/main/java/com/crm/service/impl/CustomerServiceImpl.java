@@ -121,7 +121,6 @@ public class CustomerServiceImpl implements CustomerService {
         User customer = getCustomerById(customerId);
         interaction.setCustomer(customer);
         interaction.setDate(LocalDateTime.now());
-        // Set default statuses for new interactions
         interaction.setAdminStatus("PENDING");
         interaction.setCustomerStatus("PENDING");
         return interactionRepository.save(interaction);
@@ -145,12 +144,18 @@ public class CustomerServiceImpl implements CustomerService {
         Interaction interaction = interactionRepository.findById(interactionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Interaction not found: " + interactionId));
 
-        // Ensure the interaction belongs to the customer
         if (!interaction.getCustomer().getId().equals(customer.getId())) {
             throw new SecurityException("Customer is not authorized to update this interaction.");
         }
 
         interaction.setCustomerStatus(status);
         return interactionRepository.save(interaction);
+    }
+    
+    @Override
+    public List<Interaction> getInteractionsForCalendar(Long customerId, LocalDateTime startDate, LocalDateTime endDate) {
+        User customer = userRepository.findById(customerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+        return interactionRepository.findByCustomerAndDateBetween(customer, startDate, endDate);
     }
 }

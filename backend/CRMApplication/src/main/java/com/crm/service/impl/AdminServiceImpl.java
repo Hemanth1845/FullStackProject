@@ -1,19 +1,20 @@
 package com.crm.service.impl;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.HashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.crm.dto.UserInteractionCountDTO;
 import com.crm.exception.ResourceNotFoundException;
 import com.crm.model.CustomerCampaign;
 import com.crm.model.EmailCampaign;
@@ -46,61 +47,10 @@ public class AdminServiceImpl implements AdminService {
     @Autowired private EmailService emailService;
 
     @Override
-    public User approveCustomer(Long customerId) {
-        User customer = userRepository.findById(customerId)
-                .filter(user -> user.getStatus() == UserStatus.PENDING)
-                .orElseThrow(() -> new ResourceNotFoundException("Pending customer not found with id: " + customerId));
-        
-        customer.setStatus(UserStatus.ACTIVE);
-        User updatedCustomer = userRepository.save(customer);
-        
-        String subject = "Your Account has been Approved!";
-        String htmlBody = buildAccountApprovalEmail(updatedCustomer.getUsername());
-        emailService.sendHtmlMessage(updatedCustomer.getEmail(), subject, htmlBody);
-        
-        return updatedCustomer;
-    }
-    
-    private String buildAccountApprovalEmail(String username) {
-        return "<!DOCTYPE html>" +
-               "<html lang='en'>" +
-               "<head><style>" +
-               "  body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }" +
-               "  .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }" +
-               "  .header { text-align: center; padding-bottom: 20px; border-bottom: 1px solid #dddddd; }" +
-               "  .header img { max-width: 120px; margin-bottom: 10px; }" +
-               "  .content { padding: 20px 0; line-height: 1.6; color: #333333; }" +
-               "  .content h1 { color: #27ae60; }" +
-               "  .button-container { text-align: center; margin-top: 20px; }" +
-               "  .button { background-color: #3498db; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; }" +
-               "  .footer { text-align: center; font-size: 12px; color: #777777; padding-top: 20px; border-top: 1px solid #dddddd; }" +
-               "</style></head>" +
-               "<body>" +
-               "<div class='container'>" +
-               "  <div class='header'>" +
-               "    <img src='https://t4.ftcdn.net/jpg/14/67/59/79/240_F_1467597954_xDk60hyOse7gKb80oiEuhwzavp9Szpsb.jpg' alt='Account Approved'>" +
-               "    <h1>Welcome Aboard!</h1>" +
-               "  </div>" +
-               "  <div class='content'>" +
-               "    <p>Hello " + username + ",</p>" +
-               "    <p>Great news! Your account with the Customer Management System has been reviewed and approved by an administrator. You can now log in and access your dashboard.</p>" +
-               "    <div class='button-container'>" +
-               "      <a href='http://localhost:5173/login' class='button'>Login to Your Account</a>" +
-               "    </div>" +
-               "  </div>" +
-               "  <div class='footer'>" +
-               "    <p>&copy; " + LocalDateTime.now().getYear() + " CRM Project. All rights reserved.</p>" +
-               "  </div>" +
-               "</div>" +
-               "</body>" +
-               "</html>";
-    }
-    
-    @Override
     public Page<User> getAllCustomers(Pageable pageable) {
         return userRepository.findByRole(Role.ROLE_CUSTOMER, pageable);
     }
-    
+
     @Override
     public User addCustomer(User customer) {
         if (customer.getPassword() == null || customer.getPassword().isEmpty()) {
@@ -150,6 +100,22 @@ public class AdminServiceImpl implements AdminService {
     }
     
     @Override
+    public User approveCustomer(Long customerId) {
+        User customer = userRepository.findById(customerId)
+                .filter(user -> user.getStatus() == UserStatus.PENDING)
+                .orElseThrow(() -> new ResourceNotFoundException("Pending customer not found with id: " + customerId));
+        
+        customer.setStatus(UserStatus.ACTIVE);
+        User updatedCustomer = userRepository.save(customer);
+        
+        String subject = "Your Account has been Approved!";
+        String htmlBody = buildAccountApprovalEmail(updatedCustomer.getUsername());
+        emailService.sendHtmlMessage(updatedCustomer.getEmail(), subject, htmlBody);
+        
+        return updatedCustomer;
+    }
+    
+    @Override
     public void rejectCustomer(Long customerId) {
         User customer = userRepository.findById(customerId)
                 .filter(user -> user.getStatus() == UserStatus.PENDING)
@@ -158,47 +124,15 @@ public class AdminServiceImpl implements AdminService {
         String customerEmail = customer.getEmail();
         userRepository.delete(customer);
 
-        String htmlContent = "<html>"
-        + "<body>"
-        + "<h2>Account Update</h2>"
-        + "<p>We regret to inform you that your registration for the CRM Portal has been rejected.</p>"
-        + "<img src='https://as2.ftcdn.net/jpg/16/89/36/13/1000_F_1689361346_oEbH0YOaWwkpPDqyttMbJ66hPCQ1siIM.jpg' "
-        + "alt='Rejected' width='400'/>"
-        + "</body>"
-        + "</html>";
-        
+        String htmlContent = "<html><body><h2>Account Update</h2><p>We regret to inform you that your registration for the CRM Portal has been rejected.</p><img src='https://as2.ftcdn.net/jpg/16/89/36/13/1000_F_1689361346_oEbH0YOaWwkpPDqyttMbJ66hPCQ1siIM.jpg' alt='Rejected' width='400'/></body></html>";
         emailService.sendSimpleMessage(customerEmail, "Account Update", htmlContent);
     }
 
-    @Override
-    public List<CustomerCampaign> getPendingCampaigns() {
-        return customerCampaignRepository.findByStatus("PENDING");
-    }
-
-    @Override
-    public CustomerCampaign updateCustomerCampaignStatus(Long campaignId, String status) {
-        CustomerCampaign campaign = customerCampaignRepository.findById(campaignId)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer Campaign not found: " + campaignId));
-        
-        campaign.setStatus(status.toUpperCase());
-        campaign.setReviewedAt(LocalDateTime.now());
-        
-        Notification notification = new Notification();
-        notification.setUser(campaign.getCustomer());
-        String message = String.format("Your campaign proposal '%s' has been %s by the admin.", campaign.getTitle(), status.toLowerCase());
-        notification.setMessage(message);
-        notificationRepository.save(notification);
-
-        return customerCampaignRepository.save(campaign);
-    }
-
-    // MODIFIED for the new two-status system
     @Override
     public Page<Interaction> getPendingInteractions(Pageable pageable) {
         return interactionRepository.findByAdminStatus("PENDING", pageable);
     }
 
-    // MODIFIED for the new two-status system
     @Override
     public Interaction updateInteractionStatus(Long interactionId, String status) {
         Interaction interaction = interactionRepository.findById(interactionId)
@@ -209,17 +143,13 @@ public class AdminServiceImpl implements AdminService {
 
         Notification notification = new Notification();
         notification.setUser(interaction.getCustomer());
-        String message = String.format(
-            "Admin has reviewed your interaction '%s'. New status: %s",
-            interaction.getSubject(),
-            status.toLowerCase()
-        );
+        String message = String.format("Admin has updated the status of your interaction '%s' to: %s", interaction.getSubject(), status.toLowerCase());
         notification.setMessage(message);
         notificationRepository.save(notification);
 
         return updatedInteraction;
     }
-    
+
     @Override
     public Map<String, Object> getAdminAnalytics() {
         Map<String, Object> stats = new HashMap<>();
@@ -237,8 +167,11 @@ public class AdminServiceImpl implements AdminService {
                 return dataPoint;
             })
             .collect(Collectors.toList());
-
         stats.put("customerGrowth", customerGrowthData);
+        
+        List<UserInteractionCountDTO> leaderboard = userRepository.findTopCustomersByInteractions(PageRequest.of(0, 10));
+        stats.put("leaderboard", leaderboard);
+
         return stats;
     }
 
@@ -273,6 +206,28 @@ public class AdminServiceImpl implements AdminService {
             throw new ResourceNotFoundException("Email Campaign not found: " + id);
         }
         emailCampaignRepository.deleteById(id);
+    }
+
+    @Override
+    public List<CustomerCampaign> getPendingCampaigns() {
+        return customerCampaignRepository.findByStatus("PENDING");
+    }
+
+    @Override
+    public CustomerCampaign updateCustomerCampaignStatus(Long campaignId, String status) {
+        CustomerCampaign campaign = customerCampaignRepository.findById(campaignId)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer Campaign not found: " + campaignId));
+        
+        campaign.setStatus(status.toUpperCase());
+        campaign.setReviewedAt(LocalDateTime.now());
+        
+        Notification notification = new Notification();
+        notification.setUser(campaign.getCustomer());
+        String message = String.format("Your campaign proposal '%s' has been %s by the admin.", campaign.getTitle(), status.toLowerCase());
+        notification.setMessage(message);
+        notificationRepository.save(notification);
+
+        return customerCampaignRepository.save(campaign);
     }
 
     @Override
@@ -319,4 +274,40 @@ public class AdminServiceImpl implements AdminService {
         settings.setId(1L); 
         return settingsRepository.save(settings);
     }
+    
+    private String buildAccountApprovalEmail(String username) {
+        return "<!DOCTYPE html>" +
+               "<html lang='en'>" +
+               "<head><style>" +
+               "  body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }" +
+               "  .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }" +
+               "  .header { text-align: center; padding-bottom: 20px; border-bottom: 1px solid #dddddd; }" +
+               "  .header img { max-width: 120px; margin-bottom: 10px; }" +
+               "  .content { padding: 20px 0; line-height: 1.6; color: #333333; }" +
+               "  .content h1 { color: #27ae60; }" +
+               "  .button-container { text-align: center; margin-top: 20px; }" +
+               "  .button { background-color: #3498db; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; }" +
+               "  .footer { text-align: center; font-size: 12px; color: #777777; padding-top: 20px; border-top: 1px solid #dddddd; }" +
+               "</style></head>" +
+               "<body>" +
+               "<div class='container'>" +
+               "  <div class='header'>" +
+               "    <img src='https://t4.ftcdn.net/jpg/14/67/59/79/240_F_1467597954_xDk60hyOse7gKb80oiEuhwzavp9Szpsb.jpg' alt='Account Approved'>" +
+               "    <h1>Welcome Aboard!</h1>" +
+               "  </div>" +
+               "  <div class='content'>" +
+               "    <p>Hello " + username + ",</p>" +
+               "    <p>Great news! Your account with the Customer Management System has been reviewed and approved by an administrator. You can now log in and access your dashboard.</p>" +
+               "    <div class='button-container'>" +
+               "      <a href='http://localhost:5173/login' class='button'>Login to Your Account</a>" +
+               "    </div>" +
+               "  </div>" +
+               "  <div class='footer'>" +
+               "    <p>&copy; " + LocalDateTime.now().getYear() + " CRM Project. All rights reserved.</p>" +
+               "  </div>" +
+               "</div>" +
+               "</body>" +
+               "</html>";
+    }
 }
+

@@ -6,7 +6,8 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.2.5</version>
-		<relativePath/> </parent>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
 	<groupId>com.crm</groupId>
 	<artifactId>CRMApplication</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
@@ -27,6 +28,12 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		
+		<!-- THIS IS THE NEW DEPENDENCY -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
 		</dependency>
 		
 		<dependency>
@@ -85,3 +92,4 @@
 		</plugins>
 	</build>
 </project>
+
