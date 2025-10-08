@@ -13,8 +13,9 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
+                // Allow requests from the frontend's origin
                 registry.addMapping("/api/**")
-                        .allowedOrigins("http://localhost:4000", "http://localhost") // Added localhost for Docker
+                        .allowedOrigins("http://localhost:4000") // Frontend URL
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
