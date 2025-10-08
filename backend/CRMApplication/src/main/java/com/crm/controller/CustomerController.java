@@ -8,6 +8,7 @@ import com.crm.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -15,6 +16,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -75,6 +77,7 @@ public class CustomerController {
             @RequestParam(required = false) String search,
             Pageable pageable,
             @AuthenticationPrincipal UserDetails userDetails) {
+
         checkAccess(id, userDetails);
         Page<Interaction> interactions = customerService.getInteractionsForCustomer(id, type, search, pageable);
         return ResponseEntity.ok(interactions);
@@ -91,7 +94,6 @@ public class CustomerController {
         return new ResponseEntity<>(newInteraction, HttpStatus.CREATED);
     }
     
-    // NEW ENDPOINT
     @PutMapping("/{id}/interactions/{interactionId}/status")
     public ResponseEntity<Interaction> updateCustomerInteractionStatus(
             @PathVariable Long id,
@@ -106,6 +108,19 @@ public class CustomerController {
         }
         Interaction updatedInteraction = customerService.updateCustomerInteractionStatus(id, interactionId, status.toUpperCase());
         return ResponseEntity.ok(updatedInteraction);
+    }
+    
+    // == NEW ENDPOINT FOR CALENDAR ==
+    @GetMapping("/{id}/calendar")
+    public ResponseEntity<List<Interaction>> getCalendarInteractions(
+        @PathVariable Long id,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end,
+        @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        checkAccess(id, userDetails);
+        List<Interaction> interactions = customerService.getInteractionsForCalendar(id, start, end);
+        return ResponseEntity.ok(interactions);
     }
 
     // == Marketing Email Campaigns Endpoint ==

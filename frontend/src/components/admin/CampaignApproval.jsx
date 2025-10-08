@@ -1,17 +1,14 @@
-// src/components/admin/CampaignApproval.jsx
-
 import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
-import api from '../../api';
+import api from '../../api'; // Use the configured api instance
 import Swal from 'sweetalert2';
 
-// Styled Components
+// --- STYLED COMPONENTS (No changes) ---
 const Container = styled.div`
   padding: 20px;
 `;
-
 const PageTitle = styled.h1`
   margin-bottom: 30px;
   color: #333;
@@ -19,151 +16,196 @@ const PageTitle = styled.h1`
   border-bottom: 2px solid #e74c3c;
   padding-bottom: 10px;
 `;
-
-const CampaignGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-`;
-
-const CampaignCard = styled.div`
+const Table = styled.table`
+  width: 100%;
+  border-collapse: collapse;
   background-color: white;
   border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 `;
-
-const CardHeader = styled.div`
-    border-bottom: 1px solid #eee;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
+const TableHead = styled.thead`
+  background-color: #f8f9fa;
 `;
-
-const CampaignTitle = styled.h3`
-  margin: 0;
+const TableRow = styled.tr`
+  &:nth-child(even) {
+    background-color: #f8f9fa;
+  }
+  &:hover {
+    background-color: #f1f4f9;
+  }
+`;
+const TableHeader = styled.th`
+  padding: 15px;
+  text-align: left;
+  font-weight: bold;
   color: #333;
+  border-bottom: 2px solid #ddd;
 `;
-
-const CustomerInfo = styled.p`
-    margin: 5px 0 0;
-    font-size: 0.9rem;
-    color: #777;
+const TableCell = styled.td`
+  padding: 15px;
+  border-bottom: 1px solid #ddd;
 `;
-
-const CampaignDescription = styled.p`
-    flex-grow: 1;
-    color: #555;
-    line-height: 1.6;
-`;
-
 const ActionButtons = styled.div`
   display: flex;
   gap: 10px;
-  margin-top: 20px;
 `;
-
 const ActionButton = styled.button`
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex: 1;
-  gap: 8px;
-  padding: 10px;
+  gap: 5px;
+  padding: 8px 12px;
   border: none;
   border-radius: 5px;
   color: white;
   cursor: pointer;
   transition: background-color 0.3s ease;
   font-size: 0.9rem;
-  font-weight: bold;
-
   background-color: ${props => props.$approve ? '#2ecc71' : '#e74c3c'};
   &:hover {
     background-color: ${props => props.$approve ? '#27ae60' : '#c0392b'};
   }
 `;
-
 const LoadingSpinner = styled.div`
-  // ... (same as other components)
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  .spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top: 4px solid #e74c3c;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 `;
-
 const NoData = styled.div`
   text-align: center;
   padding: 50px;
   color: #666;
   font-size: 1.2rem;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 `;
-
-const CampaignApproval = () => {
-  const [pendingCampaigns, setPendingCampaigns] = useState([]);
+// --- COMPONENT LOGIC ---
+const CustomerApproval = () => {
+  const [pendingCustomers, setPendingCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchPendingCampaigns = useCallback(async () => {
+  const fetchPendingCustomers = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await api.get('/admin/customer-campaigns/pending');
-      setPendingCampaigns(response.data || []);
+      // FIXED: Use api instance which includes base URL and auth headers
+      const response = await api.get('/admin/customers/pending');
+      setPendingCustomers(response.data.content || []);
     } catch (error) {
-      console.error("Failed to fetch pending campaigns:", error);
-      Swal.fire('Error', 'Failed to load pending campaigns.', 'error');
+      console.error("Failed to fetch pending customers:", error);
+      // The api interceptor will handle the Swal alert for auth errors
+      if (error.response?.status !== 401 && error.response?.status !== 403) {
+        Swal.fire('Error', 'Failed to load pending customers.', 'error');
+      }
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchPendingCampaigns();
-  }, [fetchPendingCampaigns]);
+    fetchPendingCustomers();
+  }, [fetchPendingCustomers]);
 
-  const handleStatusUpdate = async (campaignId, status) => {
-    const action = status === 'APPROVED' ? 'approve' : 'reject';
+  const handleApprove = async (customerId) => {
     try {
-      await api.put(`/admin/customer-campaigns/${campaignId}/status`, { status });
-      Swal.fire(
-        `${status === 'APPROVED' ? 'Approved' : 'Rejected'}!`,
-        `The campaign has been ${action}ed.`,
-        'success'
-      );
-      fetchPendingCampaigns(); // Refresh the list
+      // FIXED: Use api instance
+      await api.put(`/admin/customers/${customerId}/approve`, {});
+      Swal.fire('Approved!', 'Customer has been approved.', 'success');
+      fetchPendingCustomers();
     } catch (error) {
-      Swal.fire('Error', `Failed to ${action} the campaign.`, 'error');
+       console.error("Failed to approve customer:", error);
+       Swal.fire('Error', 'Failed to approve customer.', 'error');
     }
   };
 
+  const handleReject = (customerId) => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "This will permanently delete the customer's registration request.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#e74c3c',
+      cancelButtonColor: '#7f8c8d',
+      confirmButtonText: 'Yes, reject and delete!'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+           // FIXED: Use api instance
+           await api.delete(`/admin/customers/${customerId}/reject`);
+           Swal.fire('Rejected!', 'Customer has been removed.', 'success');
+           fetchPendingCustomers();
+        } catch (error) {
+           console.error("Failed to reject customer:", error);
+           Swal.fire('Error', 'Failed to reject customer.', 'error');
+        }
+      }
+    });
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString(undefined, {
+      year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+  };
+
   if (loading) {
-    return <Container><PageTitle>Campaign Approval</PageTitle><LoadingSpinner>...</LoadingSpinner></Container>;
+    return (
+      <Container>
+        <PageTitle>Customer Approval</PageTitle>
+        <LoadingSpinner><div className="spinner"></div></LoadingSpinner>
+      </Container>
+    );
   }
 
   return (
     <Container>
-      <PageTitle>Campaign Approval</PageTitle>
-      {pendingCampaigns.length > 0 ? (
-        <CampaignGrid>
-          {pendingCampaigns.map(campaign => (
-            <CampaignCard key={campaign.id}>
-                <CardHeader>
-                    <CampaignTitle>{campaign.title}</CampaignTitle>
-                    <CustomerInfo>Submitted by: {campaign.customer.username}</CustomerInfo>
-                </CardHeader>
-                <CampaignDescription>{campaign.description}</CampaignDescription>
-                <ActionButtons>
-                    <ActionButton $approve onClick={() => handleStatusUpdate(campaign.id, 'APPROVED')}>
-                        <FontAwesomeIcon icon={faCheck} /> Approve
-                    </ActionButton>
-                    <ActionButton onClick={() => handleStatusUpdate(campaign.id, 'REJECTED')}>
-                        <FontAwesomeIcon icon={faTimes} /> Reject
-                    </ActionButton>
-                </ActionButtons>
-            </CampaignCard>
-          ))}
-        </CampaignGrid>
+      <PageTitle>Customer Approval</PageTitle>
+      {pendingCustomers.length > 0 ? (
+        <Table>
+            <TableHead>
+                <TableRow>
+                    <TableHeader>Username</TableHeader>
+                    <TableHeader>Email</TableHeader>
+                    <TableHeader>Join Date</TableHeader>
+                    <TableHeader>Actions</TableHeader>
+                </TableRow>
+            </TableHead>
+            <tbody>
+                {pendingCustomers.map(customer => (
+                    <TableRow key={customer.id}>
+                        <TableCell>{customer.username}</TableCell>
+                        <TableCell>{customer.email}</TableCell>
+                        <TableCell>{formatDate(customer.joinDate)}</TableCell>
+                        <TableCell>
+                            <ActionButtons>
+                                <ActionButton $approve onClick={() => handleApprove(customer.id)}>
+                                    <FontAwesomeIcon icon={faCheck} /> Approve
+                                </ActionButton>
+                                <ActionButton onClick={() => handleReject(customer.id)}>
+                                    <FontAwesomeIcon icon={faTimes} /> Reject
+                                </ActionButton>
+                            </ActionButtons>
+                        </TableCell>
+                    </TableRow>
+                ))}
+            </tbody>
+        </Table>
       ) : (
-        <NoData>No pending campaigns for approval at this time.</NoData>
+        <NoData>No pending customer approvals at this time.</NoData>
       )}
     </Container>
   );
 };
 
-export default CampaignApproval;
+export default CustomerApproval;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUpload, faDownload, faTrash, faKey, faFileAlt } from '@fortawesome/free-solid-svg-icons';
+import { faUpload, faDownload, faTrash, faFileAlt } from '@fortawesome/free-solid-svg-icons';
 import api from '../../api';
 import Swal from 'sweetalert2';
 
@@ -106,24 +106,29 @@ const SecureFileSafe = () => {
         const { value: formValues } = await Swal.fire({
             title: 'Upload a New File',
             html:
-                '<input id="swal-file" type="file">' +
+                '<input id="swal-file" type="file" class="swal2-file" style="margin: 1em;">' +
+                '<input id="swal-filename" class="swal2-input" placeholder="Enter a filename (optional)">' +
                 '<input id="swal-pin" type="password" class="swal2-input" placeholder="Create a 4-digit PIN">',
             focusConfirm: false,
             preConfirm: () => {
-                return [
-                    document.getElementById('swal-file').files[0],
-                    document.getElementById('swal-pin').value
-                ]
+                const file = document.getElementById('swal-file').files[0];
+                const fileName = document.getElementById('swal-filename').value;
+                const pin = document.getElementById('swal-pin').value;
+                return { file, fileName, pin };
             }
         });
-
+    
         if (formValues) {
-            const [file, pin] = formValues;
+            const { file, fileName, pin } = formValues;
             if (file && pin && /^\d{4}$/.test(pin)) {
                 const formData = new FormData();
-                formData.append('file', file);
+                // Use custom filename if provided, otherwise use the original file name
+                const finalFileName = fileName.trim() || file.name;
+                // The backend needs to know the original file name for content type, etc.
+                // We send the file object which contains this info.
+                formData.append('file', file, finalFileName);
                 formData.append('pin', pin);
-
+    
                 try {
                     await api.post('/files/upload', formData, {
                         headers: { 'Content-Type': 'multipart/form-data' }
@@ -138,6 +143,7 @@ const SecureFileSafe = () => {
             }
         }
     };
+    
 
     const handleDownload = async (fileId) => {
         const { value: pin } = await Swal.fire({

@@ -3,19 +3,12 @@ import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom'
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  faUser, 
-  faChartLine, 
-  faComments, 
-  faPaperPlane,
-  faEnvelopeOpenText,
-  faCalendarAlt,
-  faShieldHalved,
-  faMessage,
-  faBars, 
-  faSignOutAlt 
+  faUser, faChartLine, faComments, faPaperPlane,
+  faEnvelopeOpenText, faCalendarAlt, faShieldHalved, faMessage,
+  faBars, faSignOutAlt 
 } from '@fortawesome/free-solid-svg-icons';
 
-// Import all components, including the new ones
+// Import all components
 import CustomerProfile from './CustomerProfile';
 import CustomerAnalytics from './CustomerAnalytics';
 import CustomerInteractions from './CustomerInteractions';
@@ -263,5 +256,4 @@ const CustomerDashboard = () => {
 };
 
 export default CustomerDashboard;
-
 

@@ -13,7 +13,7 @@ const CalendarContainer = styled.div`
   border-radius: 10px;
   box-shadow: 0 5px 15px rgba(0,0,0,0.05);
 
-  .fc { // Style FullCalendar elements
+  .fc { 
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   }
   .fc-event {
@@ -40,12 +40,17 @@ const InteractionCalendar = () => {
     const fetchEvents = async (fetchInfo, successCallback, failureCallback) => {
         try {
             const userId = sessionStorage.getItem('userId');
+            if (!userId) {
+                throw new Error("User not logged in");
+            }
+            // The backend endpoint now exists to handle this request
             const response = await api.get(`/customers/${userId}/calendar`, {
                 params: {
                     start: fetchInfo.startStr,
                     end: fetchInfo.endStr
                 }
             });
+
             const formattedEvents = response.data.map(interaction => ({
                 id: interaction.id,
                 title: interaction.subject,
@@ -56,14 +61,14 @@ const InteractionCalendar = () => {
                     adminStatus: interaction.adminStatus,
                     customerStatus: interaction.customerStatus
                 },
-                // Add color based on admin's approval status
-                backgroundColor: interaction.adminStatus === 'COMPLETED' ? '#2ecc71' : '#f39c12',
-                borderColor: interaction.adminStatus === 'COMPLETED' ? '#27ae60' : '#d35400'
+                backgroundColor: interaction.adminStatus === 'COMPLETED' ? '#2ecc71' : (interaction.adminStatus === 'SCHEDULED' ? '#3498db' : '#f39c12'),
+                borderColor: interaction.adminStatus === 'COMPLETED' ? '#27ae60' : (interaction.adminStatus === 'SCHEDULED' ? '#2980b9' : '#d35400')
             }));
             successCallback(formattedEvents);
         } catch (error) {
+            console.error("Failed to fetch calendar events:", error);
             Swal.fire('Error', 'Could not fetch calendar events.', 'error');
-            failureCallback(error);
+            if (failureCallback) failureCallback(error);
         }
     };
 
@@ -74,8 +79,8 @@ const InteractionCalendar = () => {
             html: `
                 <div style="text-align: left; padding: 0 20px;">
                     <p><strong>Type:</strong> ${type}</p>
-                    <p><strong>Admin Status:</strong> ${adminStatus}</p>
-                    <p><strong>My Status:</strong> ${customerStatus}</p>
+                    <p><strong>Admin Status:</strong> ${adminStatus || 'N/A'}</p>
+                    <p><strong>My Status:</strong> ${customerStatus || 'N/A'}</p>
                     <p><strong>Notes:</strong> ${notes || 'No notes available.'}</p>
                 </div>
             `,
@@ -108,4 +113,3 @@ const InteractionCalendar = () => {
 };
 
 export default InteractionCalendar;
-

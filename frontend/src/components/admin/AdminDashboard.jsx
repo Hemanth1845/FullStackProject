@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faUsers, faChartLine, faEnvelope, faCog, faBars, faSignOutAlt,
-    faUserCheck, faPaperPlane, faClipboardCheck
+    faUserCheck, faPaperPlane, faClipboardCheck, faComments // Added faComments
 } from '@fortawesome/free-solid-svg-icons';
 import CustomerManagement from './CustomerManagement';
 import AdminAnalytics from './AdminAnalytics';
@@ -14,7 +14,9 @@ import Swal from 'sweetalert2';
 import CustomerApproval from './CustomerApproval';
 import CampaignApproval from './CampaignApproval';
 import InteractionApproval from './InteractionApproval';
+import AdminChat from './AdminChat'; // Import the new component
 
+// --- STYLED COMPONENTS (No changes) ---
 const DashboardContainer = styled.div`
     display: flex;
     min-height: 100vh;
@@ -70,6 +72,7 @@ const MenuLink = styled(Link)`
     text-decoration: none;
     transition: all 0.3s ease;
     border-left: 3px solid transparent;
+
     &.active {
       background-color: rgba(255, 255, 255, 0.1);
       border-left-color: #e74c3c;
@@ -166,6 +169,8 @@ const AdminDashboard = () => {
       });
     };
 
+    const sidebarWidth = isOpen ? '250px' : '70px';
+
     return (
       <DashboardContainer>
         <Sidebar $isOpen={isOpen}>
@@ -181,6 +186,12 @@ const AdminDashboard = () => {
               <MenuLink to="/admin/customers" $isOpen={isOpen} className={activeLink === 'customers' ? 'active' : ''}>
                 <FontAwesomeIcon icon={faUsers} className="icon" />
                 <span className="text">Customers</span>
+              </MenuLink>
+            </MenuItem>
+             <MenuItem>
+              <MenuLink to="/admin/chat" $isOpen={isOpen} className={activeLink === 'chat' ? 'active' : ''}>
+                <FontAwesomeIcon icon={faComments} className="icon" />
+                <span className="text">Chat</span>
               </MenuLink>
             </MenuItem>
             <MenuItem>
@@ -227,10 +238,11 @@ const AdminDashboard = () => {
           </LogoutButton>
         </Sidebar>
         
-        <Content $sidebarWidth={isOpen ? '250px' : '70px'}>
+        <Content $sidebarWidth={sidebarWidth}>
           <Routes>
             <Route path="/" element={<CustomerManagement />} />
             <Route path="/customers" element={<CustomerManagement />} />
+            <Route path="/chat" element={<AdminChat />} /> 
             <Route path="/approval" element={<CustomerApproval />} />
             <Route path="/interaction-approval" element={<InteractionApproval />} />
             <Route path="/campaign-approval" element={<CampaignApproval />} />

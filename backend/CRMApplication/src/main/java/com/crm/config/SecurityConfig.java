@@ -28,9 +28,20 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
+                // This section lists all endpoints that are publicly accessible without authentication.
+                .requestMatchers(
+                    "/",                    // Allow access to the root URL
+                    "/api/auth/**",
+                    "/v3/api-docs/**",      // Swagger JSON
+                    "/swagger-ui/**",       // Swagger UI
+                    "/swagger-ui.html",
+                    "/ws/**"                // WebSocket endpoint
+                ).permitAll()
+                // This section secures admin-only endpoints.
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/customers/**").hasRole("CUSTOMER")
+                // This section secures customer-only endpoints.
+                .requestMatchers("/api/customers/**", "/api/files/**", "/api/chat/**").hasRole("CUSTOMER")
+                // Any other request that doesn't match the rules above requires authentication.
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -49,3 +60,4 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 }
+
