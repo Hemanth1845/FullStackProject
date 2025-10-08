@@ -4,23 +4,27 @@ import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faUsers, faChartLine, faEnvelope, faCog, faBars, faSignOutAlt,
-    faUserCheck, faPaperPlane, faClipboardCheck, faComments // Added faComments
+    faUserCheck, faPaperPlane, faClipboardCheck, faComments
 } from '@fortawesome/free-solid-svg-icons';
+import Swal from 'sweetalert2';
+
+// Import all the components that will be displayed in the dashboard
 import CustomerManagement from './CustomerManagement';
 import AdminAnalytics from './AdminAnalytics';
 import EmailCampaigns from './EmailCampaigns';
 import SystemSettings from './SystemSettings';
-import Swal from 'sweetalert2';
 import CustomerApproval from './CustomerApproval';
 import CampaignApproval from './CampaignApproval';
 import InteractionApproval from './InteractionApproval';
-import AdminChat from './AdminChat'; // Import the new component
+import AdminChat from './AdminChat';
 
-// --- STYLED COMPONENTS (No changes) ---
+// --- Styled Components for the Dashboard Layout ---
+
 const DashboardContainer = styled.div`
     display: flex;
     min-height: 100vh;
 `;
+
 const Sidebar = styled.div`
     width: ${({ $isOpen }) => ($isOpen ? '250px' : '70px')};
     background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%);
@@ -32,6 +36,7 @@ const Sidebar = styled.div`
     z-index: 100;
     overflow-x: hidden;
 `;
+
 const SidebarHeader = styled.div`
     padding: 20px;
     text-align: center;
@@ -40,6 +45,7 @@ const SidebarHeader = styled.div`
     justify-content: ${({ $isOpen }) => ($isOpen ? 'space-between' : 'center')};
     align-items: center;
 `;
+
 const Logo = styled.h2`
     margin: 0;
     font-size: ${({ $isOpen }) => ($isOpen ? '1.5rem' : '0')};
@@ -47,6 +53,7 @@ const Logo = styled.h2`
     transition: all 0.3s ease;
     white-space: nowrap;
 `;
+
 const ToggleButton = styled.button`
     background: none;
     border: none;
@@ -56,14 +63,17 @@ const ToggleButton = styled.button`
     transition: transform 0.3s ease;
     transform: ${({ $isOpen }) => ($isOpen ? 'rotate(180deg)' : 'rotate(0)')};
 `;
+
 const SidebarMenu = styled.ul`
     list-style: none;
     padding: 0;
     margin: 20px 0;
 `;
+
 const MenuItem = styled.li`
     margin-bottom: 5px;
 `;
+
 const MenuLink = styled(Link)`
     display: flex;
     align-items: center;
@@ -77,11 +87,13 @@ const MenuLink = styled(Link)`
       background-color: rgba(255, 255, 255, 0.1);
       border-left-color: #e74c3c;
     }
+
     .icon {
       font-size: 1.2rem;
       min-width: 30px;
       text-align: center;
     }
+
     .text {
       margin-left: 10px;
       opacity: ${({ $isOpen }) => ($isOpen ? '1' : '0')};
@@ -90,6 +102,7 @@ const MenuLink = styled(Link)`
       white-space: nowrap;
     }
 `;
+
 const LogoutButton = styled.button`
     display: flex;
     align-items: center;
@@ -104,15 +117,18 @@ const LogoutButton = styled.button`
     text-align: left;
     position: absolute;
     bottom: 20px;
+
     &:hover {
       background-color: rgba(255, 255, 255, 0.1);
       border-left-color: #e74c3c;
     }
+
     .icon {
       font-size: 1.2rem;
       min-width: 30px;
       text-align: center;
     }
+
     .text {
       margin-left: 10px;
       opacity: ${({ $isOpen }) => ($isOpen ? '1' : '0')};
@@ -121,6 +137,7 @@ const LogoutButton = styled.button`
       white-space: nowrap;
     }
 `;
+
 const Content = styled.div`
     flex: 1;
     margin-left: ${({ $sidebarWidth }) => $sidebarWidth};
@@ -136,15 +153,20 @@ const AdminDashboard = () => {
     const location = useLocation();
 
     useEffect(() => {
+        // Update the active link based on the current URL
         const path = location.pathname.split('/')[2] || 'customers';
         setActiveLink(path);
     }, [location]);
 
     useEffect(() => {
+      // Automatically close the sidebar on smaller screens
       const handleResize = () => {
-        if (window.innerWidth < 768) setIsOpen(false);
+        if (window.innerWidth < 768) {
+          setIsOpen(false);
+        }
       };
       window.addEventListener('resize', handleResize);
+      handleResize(); // Check on initial load
       return () => window.removeEventListener('resize', handleResize);
     }, []);
 

@@ -1,72 +1,57 @@
-version: '3.8'
-
 services:
-  # MySQL Database Service
   mysqldb:
     image: mysql:8.0
     container_name: crm-mysql-db
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: crm_db
-    ports:
-      # Exposes the database on port 3307 on the host machine to avoid
-      # conflicts with any local MySQL instance.
-      - "3307:3306"
     volumes:
-      # Persists database data across container restarts.
       - mysql_data:/var/lib/mysql
     networks:
       - crm-network
+    ports:
+      - "3307:3306" # Exposing on 3307 to avoid conflicts with local MySQL on 3306
     healthcheck:
-      # Checks if the database is healthy before other services start.
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       timeout: 20s
       retries: 10
-    restart: unless-stopped
 
-  # Backend Service (Spring Boot)
   backend:
-    # Pulls the backend image from your Docker Hub repository.
-    # This image should be built and pushed by your GitHub Actions workflow.
-    image: gowthamsaikorada/crm-backend:latest
-    container_name: crm-backend
-    ports:
-      - "2025:2020"
-    environment:
-      # Configures the backend to connect to the 'mysqldb' service.
-      # Includes the fix for the "Public Key Retrieval is not allowed" error.
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysqldb:3306/crm_db?allowPublicKeyRetrieval=true&useSSL=false
-      - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=root
+    container_name: crm-backend-container
+    build:
+      context: ./backend/CRMApplication
+      dockerfile: backend.Dockerfile
     depends_on:
-      # Ensures the backend starts only after the database is healthy.
       mysqldb:
         condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysqldb:3306/crm_db
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    ports:
+      - "2025:2020"
     networks:
       - crm-network
-    restart: on-failure
 
-  # Frontend Service (React)
   frontend:
-    # Pulls the frontend image from your Docker Hub repository.
-    # This image should be built and pushed by your GitHub Actions workflow.
-    image: gowthamsaikorada/crm-frontend:latest
-    container_name: crm-frontend
+    container_name: crm-frontend-container
+    build:
+      context: ./frontend
+      dockerfile: frontend.Dockerfile
+      args:
+        - VITE_APP_API_URL=http://localhost:2025/api
     ports:
       - "4000:80"
-    depends_on:
-      # Ensures the frontend waits for the backend to be available.
-      - backend
     networks:
       - crm-network
-    restart: on-failure
+    depends_on:
+      - backend
 
-# Defines the named volume for persistent database storage.
-volumes:
-  mysql_data:
-
-# Defines the shared bridge network for inter-service communication.
 networks:
   crm-network:
     driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
 
