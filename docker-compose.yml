@@ -1,35 +1,16 @@
-services:
-  mysqldb:
-    image: mysql:8.0
-    container_name: crm-mysql-db
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: crm_db
-    volumes:
-      - mysql_data:/var/lib/mysql
-    networks:
-      - crm-network
-    ports:
-      - "3307:3306" # Exposing on 3307 to avoid conflicts with local MySQL on 3306
-    healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      timeout: 20s
-      retries: 10
+version: "3.9"
 
+services:
   backend:
     container_name: crm-backend-container
     build:
-      context: ./backend/CRMApplication
-      dockerfile: backend.Dockerfile
-    depends_on:
-      mysqldb:
-        condition: service_healthy
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysqldb:3306/crm_db
-      - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=root
+      context: ./backend
+      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USERNAME}/crm-backend:latest
     ports:
-      - "2025:2020"
+      - "2025:2025"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
     networks:
       - crm-network
 
@@ -38,20 +19,16 @@ services:
     build:
       context: ./frontend
       dockerfile: frontend.Dockerfile
-      args:
-        - VITE_APP_API_URL=http://localhost:2025/api
+    image: ${DOCKERHUB_USERNAME}/crm-frontend:latest
     ports:
       - "4000:80"
-    networks:
-      - crm-network
+    environment:
+      - VITE_APP_API_URL=http://backend:2025/api
     depends_on:
       - backend
+    networks:
+      - crm-network
 
 networks:
   crm-network:
     driver: bridge
-
-volumes:
-  mysql_data:
-    driver: local
-
