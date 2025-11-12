@@ -39,6 +39,5 @@ jobs:
           file: ./frontend/frontend.Dockerfile
           push: true
           tags: gowthamsaikorada/crm-frontend:latest
-          # This new section passes the secret to the Dockerfile
           build-args: |
             VITE_APP_API_URL=${{ secrets.VITE_APP_API_URL }}

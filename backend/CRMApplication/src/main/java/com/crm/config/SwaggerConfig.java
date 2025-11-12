@@ -1,11 +1,12 @@
 package com.crm.config;
 
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SwaggerConfig {
@@ -14,7 +15,7 @@ public class SwaggerConfig {
     public OpenAPI crmOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("CRM Application API")
+                        .title("CRM Application MANAGEMENT")
                         .description("Spring Boot REST API for the Customer Relationship Management application.")
                         .version("1.0.0")
                         .contact(new Contact()
