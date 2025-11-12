@@ -1,18 +1,17 @@
-name: Docker Fullstack CI
+name: CRM Fullstack CI/CD
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout source code
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
@@ -24,20 +23,18 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push backend image
+      - name: Build and Push Backend
         uses: docker/build-push-action@v5
         with:
-          context: ./backend/CRMApplication
-          file: ./backend/CRMApplication/backend.Dockerfile
+          context: ./backend
+          file: ./backend/Dockerfile
           push: true
-          tags: gowthamsaikorada/crm-backend:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/crm-backend:latest
 
-      - name: Build and push frontend image
+      - name: Build and Push Frontend
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
           file: ./frontend/frontend.Dockerfile
           push: true
-          tags: gowthamsaikorada/crm-frontend:latest
-          build-args: |
-            VITE_APP_API_URL=${{ secrets.VITE_APP_API_URL }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/crm-frontend:latest
